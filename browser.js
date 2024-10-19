@@ -69,7 +69,7 @@ async function runBrowser() {
         
         await page.setViewport({width: 1500, height: 1024});
 
-        await _pause(5 * 1000);
+        await _pause(30 * 1000);
 
         const searchInput = await _getSearchInput(page);
         await searchContract(searchInput, EXAMPLE_CONTRACT);
