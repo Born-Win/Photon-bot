@@ -5,9 +5,9 @@ const fs = require('fs');
 
 (async () => {
     try {
-        const [browser, searchInput, searchResultList] = await runBrowser();
-        telegramBot((contract) => openContract(browser, searchInput, searchResultList, contract));
+        const [browser, page, searchInput] = await runBrowser();
+        telegramBot((contract) => openContract(browser, page, searchInput, contract));
     } catch (err) {
-        fs.appendFile('./error.txt', err.message, () => {});
+        fs.appendFile('./error.txt', err.message + '\n', () => {});
     }
 })();

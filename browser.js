@@ -28,15 +28,24 @@ async function _getSearchResultList(page) {
 }
 
 async function searchContract(input, contract) {
+    for (let i = 0; i < 50; i++) {
+      await input.press('Backspace');
+    }
     await input.type(contract);
 }
 
-async function openContract(browser, input, resultList, contract) {
-    await searchContract(input, contract);
-    const contracts = await resultList.$$eval('a', anchors => anchors.map(anchor => anchor.href));
-    if (contracts[0]) {
-        const newTab = await browser.newPage();
-        await newTab.goto(contracts[0]);
+async function openContract(browser, page, input, contract) {
+    try {
+        await searchContract(input, contract);
+        await _pause(300)
+        const searchResultList = await _getSearchResultList(page);
+        const contracts = await searchResultList.$$eval('a', anchors => anchors.map(anchor => anchor.href));
+        if (contracts[0]) {
+            const newTab = await browser.newPage();
+            await newTab.goto(contracts[0]);
+        }
+    } catch (err) {
+        fs.appendFile('./error.txt', err.message + '\n', () => {});
     }
 }
 
@@ -69,16 +78,15 @@ async function runBrowser() {
         
         await page.setViewport({width: 1500, height: 1024});
 
-        await _pause(30 * 1000);
+        await _pause(3 * 60 * 1000); // 3 minutes
 
         const searchInput = await _getSearchInput(page);
         await searchContract(searchInput, EXAMPLE_CONTRACT);
         await _pause(2 * 1000);
-        const searchResultList = await _getSearchResultList(page);
 
-        return [browser, searchInput, searchResultList];
+        return [browser, page, searchInput];
     } catch (err) {
-        fs.appendFile('./error.txt', err.message, () => {});
+        fs.appendFile('./error.txt', err.message + '\n', () => {});
         throw err;
     }
 }
