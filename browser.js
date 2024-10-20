@@ -120,12 +120,15 @@ module.exports = class Scrapping {
 
     _telegramMsgParser(message) {
         const CONTRACT_INDICATOR = '合约';
+        const CODE_INDICATOR = '</code>';
+        const PRE_CODE_INDICATOR = '"MessageEntityCode">';
         const clearedMsg = message.trim();
     
         if (!clearedMsg.includes(CONTRACT_INDICATOR)) return;
+
+        const substr = clearedMsg.substring(clearedMsg.indexOf(CONTRACT_INDICATOR));
+        const contract = substr.substring(substr.indexOf(PRE_CODE_INDICATOR) + PRE_CODE_INDICATOR.length, substr.indexOf(CODE_INDICATOR))
     
-        const contract = clearedMsg.substring(clearedMsg.indexOf(CONTRACT_INDICATOR) + CONTRACT_INDICATOR.length + 1);
-        
         return contract;
     }
     
