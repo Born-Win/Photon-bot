@@ -22,6 +22,7 @@ module.exports = class Scrapping {
         }
         this.EXAMPLE_CONTRACT = 'EtqDzr7c9J8GHm9rWUD2kXYSWkL78y29R4VDEEofpump';
         this.telegramLastMsgId = '';
+        this.telegramMsgCount = 0;
     }
 
     async init() {
@@ -68,22 +69,31 @@ module.exports = class Scrapping {
         return searchResultList;
     }
     
-    async _searchContract(contract) {
+    async _searchContract(input, contract) {
+        // for (let i = 0; i < 50; i++) {
+        //     await this.searchInput.press('Backspace');
+        // }
+        // await this.searchInput.type(contract);
+        await input.type(contract);
+    }
+
+    async _clearContract() {
         for (let i = 0; i < 50; i++) {
-          await this.searchInput.press('Backspace');
+            await this.searchInput.press('Backspace');
         }
-        await this.searchInput.type(contract);
     }
     
     async _openContract(contract) {
         try {
-            await this._searchContract(contract);
-            await this._pause(300);
+            const searchInput = await this._getSearchInput();
+            await this._searchContract(searchInput, contract);
+            await this._pause(500);
             const searchResultList = await this._getSearchResultList();
             const contracts = await searchResultList.$$eval('a', anchors => anchors.map(anchor => anchor.href));
             if (contracts[0]) {
                 const newTab = await this.browser.newPage();
                 await newTab.goto(contracts[0]);
+                this.photonPage = newTab;
             }
         } catch (err) {
             this._callError(err);
@@ -105,9 +115,6 @@ module.exports = class Scrapping {
 
         if (!this.telegramPage) throw new Error('Telegram is not opened');
 
-        this.searchInput = await this._getSearchInput();
-        await this.searchInput.type(this.EXAMPLE_CONTRACT);
-
         console.log('App launched');
 
         this.launched = true;
@@ -126,9 +133,15 @@ module.exports = class Scrapping {
     
         if (!clearedMsg.includes(CONTRACT_INDICATOR)) return;
 
-        const substr = clearedMsg.substring(clearedMsg.indexOf(CONTRACT_INDICATOR));
-        const contract = substr.substring(substr.indexOf(PRE_CODE_INDICATOR) + PRE_CODE_INDICATOR.length, substr.indexOf(CODE_INDICATOR))
-    
+        let contract;
+
+        if (clearedMsg.includes(PRE_CODE_INDICATOR)) {
+            const substr = clearedMsg.substring(clearedMsg.indexOf(CONTRACT_INDICATOR));
+            contract = substr.substring(substr.indexOf(PRE_CODE_INDICATOR) + PRE_CODE_INDICATOR.length, substr.indexOf(CODE_INDICATOR))
+        } else {
+            contract = clearedMsg.substring(clearedMsg.indexOf(CONTRACT_INDICATOR) + CONTRACT_INDICATOR.length + 1);
+        }
+        
         return contract;
     }
     
@@ -136,13 +149,12 @@ module.exports = class Scrapping {
         const LAST_MESSAGE_CLASS = '.Message.message-list-item.last-in-list';
         const CONTENT_WRAPPER_CLASS = '.text-content';
         const SPAN_BLOCK_IN_MESSAGE = '<span';
-    
+
         const lastMessage = await page.$(LAST_MESSAGE_CLASS);
-    
+
         if (!lastMessage) throw new Error('Last message not found');
 
         const lastMsgId = await page.evaluate(el => el.id, lastMessage);
-       
         if (lastMsgId === this.telegramLastMsgId) return;
 
         this.telegramLastMsgId = lastMsgId;
@@ -159,7 +171,9 @@ module.exports = class Scrapping {
 
         if (!contract) return;
 
-        this._openContract(contract);
+        this._openContract(contract).catch(err => {
+            fs.appendFile('./error.txt', err.message + '\n', () => {});
+        });
     }
 
     _callError(err) {
