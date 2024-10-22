@@ -167,6 +167,8 @@ module.exports = class Scrapping {
 
         const lastMsgId = await page.evaluate(el => el.getAttribute('data-mid'), lastMessageWrapper);
 
+        console.log(lastMsgId, this.telegramLastMsgId);
+
         if (lastMsgId === this.telegramLastMsgId) return;
 
         this.telegramLastMsgId = lastMsgId;
@@ -179,7 +181,9 @@ module.exports = class Scrapping {
             elements.map(element => element.textContent.trim())
         );
 
-        if (!textArray.length || textArray.length == 1) return;
+        console.log(textArray);
+
+        if (!textArray.length || textArray.length != 2) return;
 
         this._openContract(textArray[1]).catch(err => {
             fs.appendFile('./error.txt', err.message + '\n', () => {});
@@ -197,6 +201,8 @@ module.exports = class Scrapping {
 
         const lastMsgId = await page.evaluate(el => el.id, lastMessage);
 
+        console.log(lastMsgId, this.telegramLastMsgId);
+
         if (lastMsgId === this.telegramLastMsgId) return;
 
         this.telegramLastMsgId = lastMsgId;
@@ -209,7 +215,9 @@ module.exports = class Scrapping {
             elements.map(element => element.textContent.trim())
         );
 
-        if (!textArray.length || textArray.length == 1) return;
+        console.log(textArray);
+
+        if (!textArray.length || textArray.length != 2) return;
 
         this._openContract(textArray[1]).catch(err => {
             fs.appendFile('./error.txt', err.message + '\n', () => {});
