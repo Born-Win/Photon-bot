@@ -42,10 +42,13 @@ module.exports = class Scrapping {
             
             await this.photonPage.setViewport({width: 1500, height: 1024});
 
-            this.telegramPage = await this.browser.newPage();
+            this.browserTelegram = await puppeteer.launch(this.browserOptions);
+
+            this.telegramPage = await this.browserTelegram.newPage();
 
             await this.telegramPage.goto(TELEGRAM_PAGE_URL);
 
+            await this.telegramPage.setViewport({width: 500, height: 1024});
         } catch (err) {
             this._callError(err);
         }
