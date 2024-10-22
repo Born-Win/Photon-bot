@@ -212,6 +212,7 @@ module.exports = class Scrapping {
     async getLastTelegramMessageNoBubble(page) {
         const LAST_MESSAGE_CLASS = '.Message.message-list-item.last-in-list';
         const CONTENT_WRAPPER_CLASS = '.text-content';
+        const CONTRACT_BLOCK_CLASS = '.text-entity-code';
         const SPAN_BLOCK_IN_MESSAGE = '<span';
 
         const lastMessage = await page.$(LAST_MESSAGE_CLASS);
@@ -230,18 +231,15 @@ module.exports = class Scrapping {
 
         if (!contentBlock) throw new Error('Content of last message not found');
 
-        const message = await page.evaluate(el => el.innerHTML, contentBlock);
+        const textArray = await contentBlock.$$eval(CONTRACT_BLOCK_CLASS, elements => 
+            elements.map(element => element.textContent.trim())
+        );
 
-        console.log('message: ', message);
-        // const clearedMsg = message.substring(0, message.indexOf(SPAN_BLOCK_IN_MESSAGE));
-
-        // const contract = this._telegramMsgParser(clearedMsg); // change this functionality for your parser
-
-        // if (!contract) return;
-
-        // this._openContract(contract).catch(err => {
-        //     fs.appendFile('./error.txt', err.message + '\n', () => {});
-        // });
+        console.log('contract: ', textArray);
+        
+        this._openContract(textArray.length == 1 ? textArray[0] : textArray[1]).catch(err => {
+            fs.appendFile('./error.txt', err.message + '\n', () => {});
+        });
     }
 
     _callError(err) {
