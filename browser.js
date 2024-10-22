@@ -32,7 +32,8 @@ module.exports = class Scrapping {
     async runBrowser() {
         try {
             const PHOTON_PAGE_URL = 'https://photon-sol.tinyastro.io/en/lp/82GqEQskTDCZ1eT5ryKPTha8ddntUaS3s6osmjyJJEtF?handle=667377ccfe59827969b8a';
-        
+            const TELEGRAM_PAGE_URL = 'https://web.telegram.org/';
+
             this.browser = await puppeteer.launch(this.browserOptions);
         
             this.photonPage = await this.browser.newPage();
@@ -40,6 +41,11 @@ module.exports = class Scrapping {
             await this.photonPage.goto(PHOTON_PAGE_URL);
             
             await this.photonPage.setViewport({width: 1500, height: 1024});
+
+            this.telegramPage = await this.browser.newPage();
+
+            await this.telegramPage.goto(TELEGRAM_PAGE_URL);
+
         } catch (err) {
             this._callError(err);
         }
@@ -105,15 +111,15 @@ module.exports = class Scrapping {
 
         const pages = await this.browser.pages();
 
-        for (const page of pages) {
-          const url = await page.url();
+        // for (const page of pages) {
+        //   const url = await page.url();
 
-          if (url.includes('web.telegram.org')) {
-            this.telegramPage = page;
-          }
-        }
+        //   if (url.includes('web.telegram.org')) {
+        //     this.telegramPage = page;
+        //   }
+        // }
 
-        if (!this.telegramPage) throw new Error('Telegram is not opened');
+        // if (!this.telegramPage) throw new Error('Telegram is not opened');
 
         console.log('App launched');
 
