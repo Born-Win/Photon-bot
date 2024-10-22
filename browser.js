@@ -80,16 +80,12 @@ module.exports = class Scrapping {
     }
     
     async _searchContract(input, contract) {
-        // for (let i = 0; i < 50; i++) {
-        //     await this.searchInput.press('Backspace');
-        // }
-        // await this.searchInput.type(contract);
         await input.type(contract);
     }
 
-    async _clearContract() {
+    async _clearContract(searchInput) {
         for (let i = 0; i < 50; i++) {
-            await this.searchInput.press('Backspace');
+            await searchInput.press('Backspace');
         }
     }
     
@@ -109,6 +105,7 @@ module.exports = class Scrapping {
             // }
 
             if (!searchResultList) {
+                this._clearContract(searchInput);
                 if (attempts < this.openingAttempts) {
                     return this._openContract(contract, ++attempts);
                 }
@@ -174,6 +171,7 @@ module.exports = class Scrapping {
 
         if (!lastMessageGroup) {
             this.notBubble = true;
+            return;
         }
 
         const messageWrappers = await lastMessageGroup.$$(MESSAGE_WRAPPER_CLASS);
