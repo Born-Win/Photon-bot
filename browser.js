@@ -73,7 +73,7 @@ module.exports = class Scrapping {
         
         const searchResultList = await this.photonPage.$(SEARCH_RESULT_ID);
         
-        if (!searchResultList) throw new Error('Photon search result not found');
+        if (!searchResultList) return;
     
         return searchResultList;
     }
@@ -97,7 +97,20 @@ module.exports = class Scrapping {
             const searchInput = await this._getSearchInput();
             await this._searchContract(searchInput, contract);
             await this._pause(500);
-            const searchResultList = await this._getSearchResultList();
+            let searchResultList = await this._getSearchResultList();
+
+            const openAttempts = 5;
+
+            for (let i = 0; i < openAttempts; i++) {
+                await this._pause(100);
+                searchResultList = await this._getSearchResultList();
+                if (searchResultList) break;
+            }
+
+            if (!searchResultList) {
+                throw new Error('Photon search result not found');
+            }
+
             const contracts = await searchResultList.$$eval('a', anchors => anchors.map(anchor => anchor.href));
             if (contracts[0]) {
                 const newTab = await this.browser.newPage();
