@@ -118,6 +118,8 @@ module.exports = class Scrapping {
         console.log('App launched');
 
         this.launched = true;
+
+        await this._pause(10 * 10000);
         setInterval(() => {
             this.getLastTelegramMessage(this.telegramPage).catch(err => {
                 fs.appendFile('./error.txt', err.message + '\n', () => {});
@@ -146,19 +148,24 @@ module.exports = class Scrapping {
     }
     
     async getLastTelegramMessage(page) {
-        const MESSAGES_WRAPPER_CLASS = '.buble';
-        const MESSAGE_CLASS = '.translatable-message';
-        const CONTENT_WRAPPER_CLASS = '.text-content';
-        const SPAN_BLOCK_IN_MESSAGE = '<span';
+        const MESSAGES_GROUP_LAST_WRAPPER_CLASS = '.bubbles-group.bubbles-group-last';
+        const MESSAGE_WRAPPER_CLASS = '.bubble';
+        const MESSAGE_CLASS = '.message.spoilers-container';
+        // const CONTENT_WRAPPER_CLASS = '.text-content';
+        // const SPAN_BLOCK_IN_MESSAGE = '<span';
+        const CONTRACT_BLOCK_CLASS = '.monospace-text';
 
-        const messages = await page.$$(`${MESSAGES_WRAPPER_CLASS}[data-mid]`);
+        const lastMessageGroup = await page.$(MESSAGES_GROUP_LAST_WRAPPER_CLASS);
 
-        if (!messages.length) throw new Error('Messages not found');
+        if (!lastMessageGroup) throw new Error('Last messages group not found');
 
-        const lastMessageWrapper = messages[messages.length - 1];
+        const lastMessageWrapper = await lastMessageGroup.$(MESSAGE_WRAPPER_CLASS);
 
-        const lastMsgId = await page.evaluate(el => el['data-mid'], lastMessageWrapper);
+        if (!lastMessageWrapper) throw new Error('Last message wrapper not found');
 
+        const lastMsgId = await page.evaluate(el => el.getAttribute('data-mid'), lastMessageWrapper);
+
+        console.log(lastMsgId, this.telegramLastMsgId);
         if (lastMsgId === this.telegramLastMsgId) return;
 
         this.telegramLastMsgId = lastMsgId;
@@ -167,16 +174,21 @@ module.exports = class Scrapping {
 
         if (!contentBlock) throw new Error('Content of last message not found');
 
-        const message = await page.evaluate(el => el.innerHTML, contentBlock);
+        const textArray = await contentBlock.$$eval(CONTRACT_BLOCK_CLASS, elements => 
+            elements.map(element => element.textContent.trim())
+        );
+
+        console.log(textArray);
+        if (!textArray.length) return;
 
         // const clearedMsg = message.substring(0, message.indexOf(SPAN_BLOCK_IN_MESSAGE));
 
-        console.log(message);
-        const contract = this._telegramMsgParser(message); // change this functionality for your parser
+        // console.log(message);
+        // const contract = this._telegramMsgParser(message); // change this functionality for your parser
 
-        if (!contract) return;
+        // if (!contract) return;
 
-        this._openContract(contract).catch(err => {
+        this._openContract(textArray[1]).catch(err => {
             fs.appendFile('./error.txt', err.message + '\n', () => {});
         });
     }
