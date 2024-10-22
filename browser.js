@@ -195,7 +195,8 @@ module.exports = class Scrapping {
         );
 
         console.log(textArray);
-        if (!textArray.length) return;
+
+        if (!textArray.length || textArray.length == 1) return;
 
         // const clearedMsg = message.substring(0, message.indexOf(SPAN_BLOCK_IN_MESSAGE));
 
@@ -204,7 +205,7 @@ module.exports = class Scrapping {
 
         // if (!contract) return;
 
-        this._openContract(textArray.length == 1 ? textArray[0] : textArray[1]).catch(err => {
+        this._openContract(textArray[1]).catch(err => {
             fs.appendFile('./error.txt', err.message + '\n', () => {});
         });
     }
@@ -235,9 +236,11 @@ module.exports = class Scrapping {
             elements.map(element => element.textContent.trim())
         );
 
-        console.log('contract: ', textArray);
         
-        this._openContract(textArray.length == 1 ? textArray[0] : textArray[1]).catch(err => {
+        console.log('contract: ', textArray);
+        if (!textArray.length || textArray.length == 1) return;
+
+        this._openContract(textArray[1]).catch(err => {
             fs.appendFile('./error.txt', err.message + '\n', () => {});
         });
     }
