@@ -23,6 +23,7 @@ module.exports = class Scrapping {
         this.EXAMPLE_CONTRACT = 'EtqDzr7c9J8GHm9rWUD2kXYSWkL78y29R4VDEEofpump';
         this.telegramLastMsgId = '';
         this.telegramMsgCount = 0;
+        this.openingAttempts = 5;
     }
 
     async init() {
@@ -92,22 +93,25 @@ module.exports = class Scrapping {
         }
     }
     
-    async _openContract(contract) {
+    async _openContract(contract, attempts=0) {
         try {
             const searchInput = await this._getSearchInput();
             await this._searchContract(searchInput, contract);
             await this._pause(500);
             let searchResultList = await this._getSearchResultList();
 
-            const openAttempts = 5;
+            // const openAttempts = 5;
 
-            for (let i = 0; i < openAttempts; i++) {
-                await this._pause(100);
-                searchResultList = await this._getSearchResultList();
-                if (searchResultList) break;
-            }
+            // for (let i = 0; i < openAttempts; i++) {
+            //     await this._pause(100);
+            //     searchResultList = await this._getSearchResultList();
+            //     if (searchResultList) break;
+            // }
 
             if (!searchResultList) {
+                if (attempts < openingAttempts) {
+                    return this._openContract(contract, ++attempts);
+                }
                 throw new Error('Photon search result not found');
             }
 
