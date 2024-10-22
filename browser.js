@@ -109,7 +109,7 @@ module.exports = class Scrapping {
             // }
 
             if (!searchResultList) {
-                if (attempts < openingAttempts) {
+                if (attempts < this.openingAttempts) {
                     return this._openContract(contract, ++attempts);
                 }
                 throw new Error('Photon search result not found');
