@@ -112,18 +112,6 @@ module.exports = class Scrapping {
     async launchApp() {
         if (this.launched) return;
 
-        const pages = await this.browser.pages();
-
-        // for (const page of pages) {
-        //   const url = await page.url();
-
-        //   if (url.includes('web.telegram.org')) {
-        //     this.telegramPage = page;
-        //   }
-        // }
-
-        // if (!this.telegramPage) throw new Error('Telegram is not opened');
-
         console.log('App launched');
 
         this.launched = true;
@@ -163,17 +151,12 @@ module.exports = class Scrapping {
         const MESSAGES_GROUP_LAST_WRAPPER_CLASS = '.bubbles-group.bubbles-group-last';
         const MESSAGE_WRAPPER_CLASS = '.bubble';
         const MESSAGE_CLASS = '.message.spoilers-container';
-        // const CONTENT_WRAPPER_CLASS = '.text-content';
-        // const SPAN_BLOCK_IN_MESSAGE = '<span';
         const CONTRACT_BLOCK_CLASS = '.monospace-text';
-
-        // await page.waitForSelector('.bubbles', { timeout: 3000 });
 
         const lastMessageGroup = await page.$(MESSAGES_GROUP_LAST_WRAPPER_CLASS);
 
         if (!lastMessageGroup) {
             this.notBubble = true;
-            // throw new Error('Last messages group not found');
         }
 
         const messageWrappers = await lastMessageGroup.$$(MESSAGE_WRAPPER_CLASS);
@@ -184,7 +167,6 @@ module.exports = class Scrapping {
 
         const lastMsgId = await page.evaluate(el => el.getAttribute('data-mid'), lastMessageWrapper);
 
-        console.log(lastMsgId, this.telegramLastMsgId);
         if (lastMsgId === this.telegramLastMsgId) return;
 
         this.telegramLastMsgId = lastMsgId;
@@ -197,16 +179,7 @@ module.exports = class Scrapping {
             elements.map(element => element.textContent.trim())
         );
 
-        console.log(textArray);
-
         if (!textArray.length || textArray.length == 1) return;
-
-        // const clearedMsg = message.substring(0, message.indexOf(SPAN_BLOCK_IN_MESSAGE));
-
-        // console.log(message);
-        // const contract = this._telegramMsgParser(message); // change this functionality for your parser
-
-        // if (!contract) return;
 
         this._openContract(textArray[1]).catch(err => {
             fs.appendFile('./error.txt', err.message + '\n', () => {});
@@ -217,15 +190,12 @@ module.exports = class Scrapping {
         const LAST_MESSAGE_CLASS = '.Message.message-list-item.last-in-list';
         const CONTENT_WRAPPER_CLASS = '.text-content';
         const CONTRACT_BLOCK_CLASS = '.text-entity-code';
-        const SPAN_BLOCK_IN_MESSAGE = '<span';
 
         const lastMessage = await page.$(LAST_MESSAGE_CLASS);
 
         if (!lastMessage) throw new Error('Last message not found');
 
         const lastMsgId = await page.evaluate(el => el.id, lastMessage);
-
-        console.log('nobuble', lastMsgId, this.telegramLastMsgId);
 
         if (lastMsgId === this.telegramLastMsgId) return;
 
@@ -239,8 +209,6 @@ module.exports = class Scrapping {
             elements.map(element => element.textContent.trim())
         );
 
-        
-        console.log('contract: ', textArray);
         if (!textArray.length || textArray.length == 1) return;
 
         this._openContract(textArray[1]).catch(err => {
