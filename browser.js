@@ -204,7 +204,7 @@ module.exports = class Scrapping {
 
         // if (!contract) return;
 
-        this._openContract(textArray[1]).catch(err => {
+        this._openContract(textArray.length == 1 ? textArray[0] : textArray[1]).catch(err => {
             fs.appendFile('./error.txt', err.message + '\n', () => {});
         });
     }
