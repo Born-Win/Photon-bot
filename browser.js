@@ -119,7 +119,7 @@ module.exports = class Scrapping {
 
         this.launched = true;
 
-        await this._pause(10 * 10000);
+        await this._pause(5 * 1000);
         setInterval(() => {
             this.getLastTelegramMessage(this.telegramPage).catch(err => {
                 fs.appendFile('./error.txt', err.message + '\n', () => {});
@@ -155,13 +155,17 @@ module.exports = class Scrapping {
         // const SPAN_BLOCK_IN_MESSAGE = '<span';
         const CONTRACT_BLOCK_CLASS = '.monospace-text';
 
+        await page.waitForSelector('.bubbles', { timeout: 3000 });
+
         const lastMessageGroup = await page.$(MESSAGES_GROUP_LAST_WRAPPER_CLASS);
 
         if (!lastMessageGroup) throw new Error('Last messages group not found');
 
-        const lastMessageWrapper = await lastMessageGroup.$(MESSAGE_WRAPPER_CLASS);
+        const messageWrappers = await lastMessageGroup.$$(MESSAGE_WRAPPER_CLASS);
 
-        if (!lastMessageWrapper) throw new Error('Last message wrapper not found');
+        if (!messageWrappers.length) throw new Error('List of message wrapper not found');
+
+        const lastMessageWrapper = messageWrappers[messageWrappers.length - 1];
 
         const lastMsgId = await page.evaluate(el => el.getAttribute('data-mid'), lastMessageWrapper);
 
