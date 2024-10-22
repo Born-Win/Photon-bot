@@ -154,6 +154,9 @@ module.exports = class Scrapping {
     }
     
     async getLastTelegramMessage(page) {
+        if (this.notBubble) {
+            return this.getLastTelegramMessageNoBubble(page);
+        }
         const MESSAGES_GROUP_LAST_WRAPPER_CLASS = '.bubbles-group.bubbles-group-last';
         const MESSAGE_WRAPPER_CLASS = '.bubble';
         const MESSAGE_CLASS = '.message.spoilers-container';
@@ -161,11 +164,14 @@ module.exports = class Scrapping {
         // const SPAN_BLOCK_IN_MESSAGE = '<span';
         const CONTRACT_BLOCK_CLASS = '.monospace-text';
 
-        await page.waitForSelector('.bubbles', { timeout: 3000 });
+        // await page.waitForSelector('.bubbles', { timeout: 3000 });
 
         const lastMessageGroup = await page.$(MESSAGES_GROUP_LAST_WRAPPER_CLASS);
 
-        if (!lastMessageGroup) throw new Error('Last messages group not found');
+        if (!lastMessageGroup) {
+            this.notBubble = true;
+            // throw new Error('Last messages group not found');
+        }
 
         const messageWrappers = await lastMessageGroup.$$(MESSAGE_WRAPPER_CLASS);
 
@@ -203,36 +209,40 @@ module.exports = class Scrapping {
         });
     }
     
-    // async getLastTelegramMessage(page) {
-    //     const LAST_MESSAGE_CLASS = '.Message.message-list-item.last-in-list';
-    //     const CONTENT_WRAPPER_CLASS = '.text-content';
-    //     const SPAN_BLOCK_IN_MESSAGE = '<span';
+    async getLastTelegramMessageNoBubble(page) {
+        const LAST_MESSAGE_CLASS = '.Message.message-list-item.last-in-list';
+        const CONTENT_WRAPPER_CLASS = '.text-content';
+        const SPAN_BLOCK_IN_MESSAGE = '<span';
 
-    //     const lastMessage = await page.$(LAST_MESSAGE_CLASS);
+        const lastMessage = await page.$(LAST_MESSAGE_CLASS);
 
-    //     if (!lastMessage) throw new Error('Last message not found');
+        if (!lastMessage) throw new Error('Last message not found');
 
-    //     const lastMsgId = await page.evaluate(el => el.id, lastMessage);
-    //     if (lastMsgId === this.telegramLastMsgId) return;
+        const lastMsgId = await page.evaluate(el => el.id, lastMessage);
 
-    //     this.telegramLastMsgId = lastMsgId;
+        console.log('nobuble', lastMsgId, this.telegramLastMsgId);
 
-    //     const contentBlock = await lastMessage.$(CONTENT_WRAPPER_CLASS);
+        if (lastMsgId === this.telegramLastMsgId) return;
 
-    //     if (!contentBlock) throw new Error('Content of last message not found');
+        this.telegramLastMsgId = lastMsgId;
 
-    //     const message = await page.evaluate(el => el.innerHTML, contentBlock);
+        const contentBlock = await lastMessage.$(CONTENT_WRAPPER_CLASS);
 
-    //     const clearedMsg = message.substring(0, message.indexOf(SPAN_BLOCK_IN_MESSAGE));
+        if (!contentBlock) throw new Error('Content of last message not found');
 
-    //     const contract = this._telegramMsgParser(clearedMsg); // change this functionality for your parser
+        const message = await page.evaluate(el => el.innerHTML, contentBlock);
 
-    //     if (!contract) return;
+        console.log('message: ', message);
+        // const clearedMsg = message.substring(0, message.indexOf(SPAN_BLOCK_IN_MESSAGE));
 
-    //     this._openContract(contract).catch(err => {
-    //         fs.appendFile('./error.txt', err.message + '\n', () => {});
-    //     });
-    // }
+        // const contract = this._telegramMsgParser(clearedMsg); // change this functionality for your parser
+
+        // if (!contract) return;
+
+        // this._openContract(contract).catch(err => {
+        //     fs.appendFile('./error.txt', err.message + '\n', () => {});
+        // });
+    }
 
     _callError(err) {
         fs.appendFile('./error.txt', err.message + '\n', () => {});
