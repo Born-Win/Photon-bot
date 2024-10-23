@@ -32,16 +32,22 @@ module.exports = class Scrapping {
 
     async runBrowser() {
         try {
-            const PHOTON_PAGE_URL = 'https://photon-sol.tinyastro.io/en/lp/82GqEQskTDCZ1eT5ryKPTha8ddntUaS3s6osmjyJJEtF?handle=667377ccfe59827969b8a';
+            // const PHOTON_PAGE_URL = 'https://photon-sol.tinyastro.io/en/lp/82GqEQskTDCZ1eT5ryKPTha8ddntUaS3s6osmjyJJEtF?handle=667377ccfe59827969b8a';
+            const SOLANA_PAGE_URL = 'https://mevx.io/solana/BvBjkVmgEsL5hHMvRvzC3yJWbJnijpFQw6gmkTpkpump'
             const TELEGRAM_PAGE_URL = 'https://web.telegram.org/';
 
             this.browser = await puppeteer.launch(this.browserOptions);
         
-            this.photonPage = await this.browser.newPage();
+            this.solanaPage = await this.browser.newPage();
         
-            await this.photonPage.goto(PHOTON_PAGE_URL);
+            await this.solanaPage.goto(SOLANA_PAGE_URL);
             
-            await this.photonPage.setViewport({width: 1500, height: 1024});
+            await this.solanaPage.setViewport({width: 1500, height: 1024});
+            // this.photonPage = await this.browser.newPage();
+        
+            // await this.photonPage.goto(PHOTON_PAGE_URL);
+            
+            // await this.photonPage.setViewport({width: 1500, height: 1024});
 
             this.browserTelegram = await puppeteer.launch(this.browserOptions);
 
@@ -88,40 +94,51 @@ module.exports = class Scrapping {
             await searchInput.press('Backspace');
         }
     }
-    
-    async _openContract(contract, attempts=0) {
+
+    async _openContract(contract) {
+        const PLATFORM_URL = 'https://mevx.io/solana' ;
+        
         try {
-            const searchInput = await this._getSearchInput();
-            await this._searchContract(searchInput, contract);
-            await this._pause(500);
-            let searchResultList = await this._getSearchResultList();
-
-            // const openAttempts = 5;
-
-            // for (let i = 0; i < openAttempts; i++) {
-            //     await this._pause(100);
-            //     searchResultList = await this._getSearchResultList();
-            //     if (searchResultList) break;
-            // }
-
-            if (!searchResultList) {
-                this._clearContract(searchInput);
-                if (attempts < this.openingAttempts) {
-                    return this._openContract(contract, ++attempts);
-                }
-                throw new Error('Photon search result not found');
-            }
-
-            const contracts = await searchResultList.$$eval('a', anchors => anchors.map(anchor => anchor.href));
-            if (contracts[0]) {
-                const newTab = await this.browser.newPage();
-                await newTab.goto(contracts[0]);
-                this.photonPage = newTab;
-            }
+            const newTab = await this.browser.newPage();
+            await newTab.goto(`${PLATFORM_URL}/${contract}`);
         } catch (err) {
             this._callError(err);
         }
     }
+    
+    // async _openContract(contract, attempts=0) {
+    //     try {
+    //         const searchInput = await this._getSearchInput();
+    //         await this._searchContract(searchInput, contract);
+    //         await this._pause(500);
+    //         let searchResultList = await this._getSearchResultList();
+
+    //         // const openAttempts = 5;
+
+    //         // for (let i = 0; i < openAttempts; i++) {
+    //         //     await this._pause(100);
+    //         //     searchResultList = await this._getSearchResultList();
+    //         //     if (searchResultList) break;
+    //         // }
+
+    //         if (!searchResultList) {
+    //             this._clearContract(searchInput);
+    //             if (attempts < this.openingAttempts) {
+    //                 return this._openContract(contract, ++attempts);
+    //             }
+    //             throw new Error('Photon search result not found');
+    //         }
+
+    //         const contracts = await searchResultList.$$eval('a', anchors => anchors.map(anchor => anchor.href));
+    //         if (contracts[0]) {
+    //             const newTab = await this.browser.newPage();
+    //             await newTab.goto(contracts[0]);
+    //             this.photonPage = newTab;
+    //         }
+    //     } catch (err) {
+    //         this._callError(err);
+    //     }
+    // }
 
     async launchApp() {
         if (this.launched) return;
