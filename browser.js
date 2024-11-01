@@ -61,6 +61,18 @@ module.exports = class Scrapping {
         }
     }
 
+    async scrollToButton(page) {
+        await page.evaluate(() => {
+            const ELEMENT_TO_SCROLL_CLASS = '.MessageList.custom-scroll';
+            const element = document.querySelector(ELEMENT_TO_SCROLL_CLASS);
+            if (element) {
+                element.scrollTop = element.scrollHeight;
+            } else {
+                throw new Error("Element with the specified classes not found");
+            }
+        });
+    }
+
     async _pause(timeout) {
         return new Promise((resolve) => setTimeout(() => resolve(), timeout));
     }
@@ -105,7 +117,7 @@ module.exports = class Scrapping {
             this._callError(err);
         }
     }
-    
+
     // async _openContract(contract, attempts=0) {
     //     try {
     //         const searchInput = await this._getSearchInput();
@@ -153,6 +165,10 @@ module.exports = class Scrapping {
                 fs.appendFile('./error.txt', err.message + '\n', () => {});
             });
         }, 1000);
+
+        setInterval(() => {
+            this.scrollToButton(this.telegramPage).catch((err) => { this._callError(err); });
+        }, 20 * 1000);
     }
 
     _telegramMsgParser(message) {
